@@ -2,7 +2,7 @@
 
 [![install from nuget](https://img.shields.io/nuget/v/Rebus.nng.svg?style=flat-square)](https://www.nuget.org/packages/Rebus.nng)
 
-Provides a NNG (nanomsg-next-gen) transport for [Rebus](https://github.com/rebus-org/Rebus). 
+Provides a [NNG](https://nng.nanomsg.org/) (nanomsg-next-gen) transport for [Rebus](https://github.com/rebus-org/Rebus). 
 
 The library implements three patterns from the [NNG](https://nanomsg.org/gettingstarted/):
 - Producer/Consumer
@@ -10,10 +10,8 @@ The library implements three patterns from the [NNG](https://nanomsg.org/getting
 - Publisher/Subscriber
 
 Check out these links:
-- [NNG Website](https://nng.nanomsg.org/)
 - [NNG GitHub](https://github.com/nanomsg/nng)
-- [nanomsg Website](https://nanomsg.org/)
-- [NNH .NET Wrapper](https://github.com/jeikabu/nng.NETCore)
+- [NNG .NET Wrapper](https://github.com/jeikabu/nng.NETCore)
 
 Check the Rebus.ng.TestConsole project for sample usage.
 
