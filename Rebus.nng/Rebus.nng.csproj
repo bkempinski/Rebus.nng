@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Rebus</RootNamespace>
+    <LangVersion>11</LangVersion>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Version>7.1.0</Version>
+    <Authors>bkempinski</Authors>
+    <Copyright>Copyright Kempinski.mt 2023</Copyright>
+    <PackageTags>rebus events nng nanomsg</PackageTags>
+    <Title>Rebus.nng</Title>
+    <PackageDescription>Provides a NNG transport for Rebus</PackageDescription>
+    <RepositoryUrl>https://github.com/bkempinski/Rebus.nng</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageProjectUrl>https://github.com/bkempinski/Rebus.nng</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.2" />
+    <PackageReference Include="nng.NET" Version="1.4.0-rc0" />
+    <PackageReference Include="Rebus" Version="7.1.0" />
+  </ItemGroup>
+
+</Project>
