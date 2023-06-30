@@ -4,11 +4,11 @@
     <RootNamespace>Rebus</RootNamespace>
     <LangVersion>11</LangVersion>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>7.1.0</Version>
     <Authors>bkempinski</Authors>
     <Copyright>Copyright Kempinski.mt 2023</Copyright>
     <PackageTags>rebus events nng nanomsg</PackageTags>
     <Title>Rebus.nng</Title>
+    <Version>7.1.0.2</Version>   
     <PackageDescription>Provides a NNG transport for Rebus</PackageDescription>
     <RepositoryUrl>https://github.com/bkempinski/Rebus.nng</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

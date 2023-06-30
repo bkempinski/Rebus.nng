@@ -1,15 +1,14 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Bson;
-using nng;
+﻿using nng;
 using Rebus.Bus;
 using Rebus.Config;
 using Rebus.Messages;
+using Rebus.Models;
 using Rebus.Subscriptions;
 using Rebus.Transport;
 using System;
-using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using static nng.Native.Defines;
@@ -26,7 +25,6 @@ public class NngTransport : ITransport, ISubscriptionStorage, IInitializable, ID
     private readonly NngPattern _nngPattern;
     private readonly string _nngUrl;
     private readonly NngTransportOptions _options;
-    private readonly JsonSerializer _jsonSerializer;
 
     private static readonly object _lockObject = new object();
     private static IAPIFactory<INngMsg> _nngApiFactory;
@@ -49,8 +47,8 @@ public class NngTransport : ITransport, ISubscriptionStorage, IInitializable, ID
             NngPattern nngPattern,
             string nngUrl,
             NngTransportOptions options
-        ) => (_nngPattern, _nngUrl, _options, _jsonSerializer)
-            = (nngPattern, ValidateNngUrl(nngUrl), options, new JsonSerializer());
+        ) => (_nngPattern, _nngUrl, _options)
+            = (nngPattern, ValidateNngUrl(nngUrl), options);
 
     public void CreateQueue(string address) { }
 
@@ -60,7 +58,7 @@ public class NngTransport : ITransport, ISubscriptionStorage, IInitializable, ID
 
         if (request.IsOk())
             using (var nngMsg = request.Unwrap())
-                return DecomposeNngMessage(nngMsg).Message;
+                return DecomposeNngMessage(nngMsg);
 
         return null;
     }
@@ -151,35 +149,24 @@ public class NngTransport : ITransport, ISubscriptionStorage, IInitializable, ID
             nngMsg.Append(destinationMagicBytes);
         }
 
-        using (var ms = new MemoryStream())
-        using (var bson = new BsonDataWriter(ms))
-        {
-            _jsonSerializer.Serialize(bson, message);
-            nngMsg.Append(ms.ToArray());
-        }
+        nngMsg.Append(JsonSerializer.SerializeToUtf8Bytes(new TransportMessageInternal(message), _options.JsonSerializerOptions));
 
         return nngMsg;
     }
 
-    private (string DestinationAddress, TransportMessage Message) DecomposeNngMessage(INngMsg nngMsg)
+    private TransportMessage DecomposeNngMessage(INngMsg nngMsg)
     {
         var bytes = nngMsg.AsSpan();
-        var bytesArray = nngMsg.AsSpan().ToArray();
-        var destinationAddress = (string)null;
         var destinationMagicBytesPos = bytes.IndexOf(destinationMagicBytes);
+        Utf8JsonReader reader;
 
         if (destinationMagicBytesPos >= 0)
-            destinationAddress = Encoding.UTF8.GetString(bytesArray, 0, destinationMagicBytesPos);
+            reader = new Utf8JsonReader(bytes.Slice(destinationMagicBytesPos + destinationMagicBytes.Length));
+        else
+            reader = new Utf8JsonReader(bytes);
 
-        using (var ms = new MemoryStream(bytesArray))
-        using (var br = new BinaryReader(ms))
-        using (var bson = new BsonDataReader(br))
-        {
-            if (destinationMagicBytesPos >= 0)
-                br.BaseStream.Position = destinationMagicBytesPos + destinationMagicBytes.Length;
-
-            return (destinationAddress, _jsonSerializer.Deserialize<TransportMessage>(bson));
-        }
+        var message = JsonSerializer.Deserialize<TransportMessageInternal>(ref reader, _options.JsonSerializerOptions);
+        return new TransportMessage(message.Headers, message.Body);
     }
 
     private string ValidateNngUrl(string nngUrl)
