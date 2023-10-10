@@ -72,8 +72,7 @@ public class NngTransport : ITransport, ISubscriptionStorage, IInitializable, ID
         using (var nngMsg = ComposeNngMessage(destinationAddress, message))
         {
             cts.CancelAfter(_options.SendTimeout);
-
-            await RetryAgain(() => (_nngSocket as ISendSocket).SendMsg(nngMsg, NngFlag.NNG_FLAG_NONBLOCK), cts.Token);
+            await RetryAgain(() => (_nngSocket as ISendSocket).SendMsg(nngMsg), cts.Token);
         }
     }
 
