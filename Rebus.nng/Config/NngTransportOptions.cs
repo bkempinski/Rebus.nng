@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
@@ -15,4 +16,6 @@ public class NngTransportOptions
     public JsonSerializerOptions JsonSerializerOptions { get; set; } = null;
 
     public TimeSpan SendTimeout { get; set; } = TimeSpan.FromSeconds(5);
+
+    public Dictionary<string, object> NngSetOptions { get; set; } = null;
 }

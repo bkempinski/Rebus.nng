@@ -1,4 +1,5 @@
 ﻿using nng;
+using nng.Native;
 using Rebus.Bus;
 using Rebus.Config;
 using Rebus.Messages;
@@ -7,6 +8,7 @@ using Rebus.Subscriptions;
 using Rebus.Transport;
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -29,7 +31,9 @@ public class NngTransport : ITransport, ISubscriptionStorage, IInitializable, ID
     private static readonly object _lockObject = new object();
     private static IAPIFactory<INngMsg> _nngApiFactory;
 
-    private INngSocket _nngSocket;
+    private INngSocket _nngSocket = null;
+    private INngListener _nngListener = null;
+    private INngDialer _nngDialer = null;
 
     public string Address =>
         _nngPattern switch
@@ -107,29 +111,86 @@ public class NngTransport : ITransport, ISubscriptionStorage, IInitializable, ID
             if (_nngApiFactory == null)
                 _nngApiFactory = NngLoadContext.Init(_options.OwnAssemblyLoadContext ?? new NngLoadContext(_options.NngPath));
 
+        // Create socket
         switch (_nngPattern)
         {
             case NngPattern.Producer:
-                _nngSocket = _nngApiFactory.PusherOpen().ThenListen(_nngUrl).Unwrap();
+                _nngSocket = _nngApiFactory.PusherOpen().Unwrap();
+                _nngListener = _nngSocket.ListenerCreate(_nngUrl).Unwrap();
                 break;
             case NngPattern.Consumer:
-                _nngSocket = _nngApiFactory.PullerOpen().ThenDial(_nngUrl).Unwrap();
+                _nngSocket = _nngApiFactory.PullerOpen().Unwrap();
+                _nngDialer = _nngSocket.DialerCreate(_nngUrl).Unwrap();
                 break;
             case NngPattern.Reply:
-                _nngSocket = _nngApiFactory.ReplierOpen().ThenListen(_nngUrl).Unwrap();
+                _nngSocket = _nngApiFactory.ReplierOpen().Unwrap();
+                _nngListener = _nngSocket.ListenerCreate(_nngUrl).Unwrap();
                 break;
             case NngPattern.Request:
-                _nngSocket = _nngApiFactory.RequesterOpen().ThenDial(_nngUrl).Unwrap();
+                _nngSocket = _nngApiFactory.RequesterOpen().Unwrap();
+                _nngDialer = _nngSocket.DialerCreate(_nngUrl).Unwrap();
                 break;
             case NngPattern.Publisher:
-                _nngSocket = _nngApiFactory.PublisherOpen().ThenListen(_nngUrl).Unwrap();
+                _nngSocket = _nngApiFactory.PublisherOpen().Unwrap();
+                _nngListener = _nngSocket.ListenerCreate(_nngUrl).Unwrap();
                 break;
             case NngPattern.Subscriber:
-                _nngSocket = _nngApiFactory.SubscriberOpen().ThenDial(_nngUrl).Unwrap();
+                _nngSocket = _nngApiFactory.SubscriberOpen().Unwrap();
+                _nngDialer = _nngSocket.DialerCreate(_nngUrl).Unwrap();
                 break;
             default:
                 throw new ArgumentException($"Unsupported NNG pattern: {_nngPattern}", nameof(_nngPattern));
         }
+
+        var setOptions = (IOptions)_nngListener ?? _nngDialer;
+
+        // Set options
+        if (_options.NngSetOptions != null && _options.NngSetOptions.Any())
+            foreach (var setOption in _options.NngSetOptions)
+            {
+                var result = 0;
+
+                switch (setOption.Value)
+                {
+                    case byte[] data:
+                        result = setOptions.SetOpt(setOption.Key, data);
+                        break;
+                    case bool data:
+                        result = setOptions.SetOpt(setOption.Key, data);
+                        break;
+                    case int data:
+                        result = setOptions.SetOpt(setOption.Key, data);
+                        break;
+                    case nng_duration data:
+                        result = setOptions.SetOpt(setOption.Key, data);
+                        break;
+                    case IntPtr data:
+                        result = setOptions.SetOpt(setOption.Key, data);
+                        break;
+                    case UIntPtr data:
+                        result = setOptions.SetOpt(setOption.Key, data);
+                        break;
+                    case string data:
+                        result = setOptions.SetOpt(setOption.Key, data);
+                        break;
+                    case ulong data:
+                        result = setOptions.SetOpt(setOption.Key, data);
+                        break;
+                    default:
+                        throw new ArgumentException($"Unsupported type for nng set option - {setOption.Key}");
+                }
+
+                if (result != 0)
+                    throw new ArgumentException($"Cannot set nng option {setOption.Key} to value {setOption.Value} ({result})");
+            }
+
+        // Listen/Dial
+        if (_nngListener != null)
+            _nngListener.Start();
+        else if (_nngDialer != null)
+            _nngDialer.Start();
+        else
+            throw new ArgumentException($"Unsupported NNG pattern: {_nngPattern}", nameof(_nngPattern));
     }
 
     public void Dispose()

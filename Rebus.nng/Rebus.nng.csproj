@@ -8,7 +8,7 @@
     <Copyright>Copyright Kempinski.mt 2023</Copyright>
     <PackageTags>rebus events nng nanomsg</PackageTags>
     <Title>Rebus.nng</Title>
-    <Version>7.2.1.0</Version>   
+    <Version>7.2.1.1</Version>   
     <PackageDescription>Provides a NNG transport for Rebus</PackageDescription>
     <RepositoryUrl>https://github.com/bkempinski/Rebus.nng</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -16,6 +16,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageProjectUrl>https://github.com/bkempinski/Rebus.nng</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
