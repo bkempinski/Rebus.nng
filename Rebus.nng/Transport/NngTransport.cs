@@ -143,13 +143,12 @@ public class NngTransport : ITransport, ISubscriptionStorage, IInitializable, ID
         }
 
         var setOptions = (IOptions)_nngListener ?? _nngDialer;
+        var result = 0;
 
         // Set options
         if (_options.NngSetOptions != null && _options.NngSetOptions.Any())
             foreach (var setOption in _options.NngSetOptions)
             {
-                var result = 0;
-
                 switch (setOption.Value)
                 {
                     case byte[] data:
@@ -186,11 +185,14 @@ public class NngTransport : ITransport, ISubscriptionStorage, IInitializable, ID
 
         // Listen/Dial
         if (_nngListener != null)
-            _nngListener.Start();
+            result = _nngListener.Start();
         else if (_nngDialer != null)
-            _nngDialer.Start();
+            result = _nngDialer.Start();
         else
             throw new ArgumentException($"Unsupported NNG pattern: {_nngPattern}", nameof(_nngPattern));
+
+        if (result != 0)
+            throw new ArgumentException($"Cannot initialize NNG connection: {_nngPattern} ({result})", nameof(_nngPattern));
     }
 
     public void Dispose()
