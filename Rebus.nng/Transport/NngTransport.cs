@@ -7,6 +7,7 @@ using Rebus.Models;
 using Rebus.Subscriptions;
 using Rebus.Transport;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -253,4 +254,7 @@ public class NngTransport : ITransport, ISubscriptionStorage, IInitializable, ID
 
         return res;
     }
+
+    Task<IReadOnlyList<string>> ISubscriptionStorage.GetSubscriberAddresses(string topic) =>
+        Task.FromResult<IReadOnlyList<string>>(new string[] { Address });
 }
